@@ -55,7 +55,7 @@ export default {
     
             const news = [];
             currentListings.forEach(x => {
-                if (oldListings.some(y => y.title == x.title)) {
+                if (oldListings.some(y => y.title == x.title) || x.price > 1600) {
                     return;
                 }
                 news.push(x);
