@@ -5,7 +5,6 @@ import TelegramBot from "node-telegram-bot-api/lib/telegram";
 
 const token = "5577024603:AAGyaYt0WYvoUCP2qg90w9Zx273Ep-z050M";
 const bot = new TelegramBot(token, { polling: true });
-const chatId = 5036014638;
 
 const instance = axios.create({
     baseURL: 'https://www.pararius.com/',
@@ -16,23 +15,9 @@ const instance = axios.create({
 const resultFilePath = `${process.env.PWD}/results/pararius.json`;
 
 export default {
-    async logPage1() {
+    async checkNewAdvertisements(cityName, chatId) {
         try {
-            const request = {
-                "filters": {
-                    "type": "for_rent",
-                    "city": "eindhoven",
-                    "lat": 51.450166028261,
-                    "lon": 5.4585282933635
-                },
-                "view_options": {
-                    "page": "2",
-                    "view": "list"
-                },
-                "sorting_options": []
-            };
-    
-            const response = await instance.post('apartments/eindhoven/page-1', request);
+            const response = await instance.post(`apartments/${cityName}`);
             const html = response.data.components.results;
             const root = parse(html);
             const listingsAsHtml = root.querySelectorAll(".search-list__item--listing");
@@ -64,7 +49,7 @@ export default {
             if (news.length) {
                 console.log("you should check the web site if you dont get message");
                 console.log(news);
-                bot.sendMessage(chatId, JSON.stringify(news));
+                bot.sendMessage(chatId, createMessage(news));
             } else {
                 console.log("no new listing.");
             }
@@ -74,4 +59,12 @@ export default {
             console.error(error)
         }
     }
+}
+
+function createMessage(listings) {
+    var message = "";
+    listings.forEach(x => {
+        message += `Title: ${x.title}, price: ${x.price}, location: ${x.location}, link: ${x.url}\r\n`;
+    });
+    return message;
 }
