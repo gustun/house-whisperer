@@ -33,21 +33,20 @@ export default {
             };
     
             const response = await instance.post('apartments/eindhoven/page-1', request);
-            const html = response.data.results;
+            const html = response.data.components.results;
             const root = parse(html);
             const listingsAsHtml = root.querySelectorAll(".search-list__item--listing");
             const currentListings = listingsAsHtml.map(x => {
                 const titleDom = x.querySelector(".listing-search-item__title");
-                const title = titleDom.childNodes[1].text;
+                const title = titleDom.childNodes[1].text.trim();
                 const url = "https://www.pararius.com" + titleDom.childNodes[1].attributes["href"];
-                const locationInnerText = x.querySelector(".listing-search-item__location").innerText;
-                const locationMatchs = locationInnerText.match('\n(.*?)\n');
-                const location = locationMatchs.length == 2 ? locationMatchs[1].trim() : locationInnerText;
+                const location = x.querySelector(".listing-search-item__sub-title").childNodes[0].text.trim();
+                const price = parseInt(x.querySelector(".listing-search-item__price").innerText.match('€(.*?) per month')[1].replace(",", ""));
                 return {
                     title,
                     url,
                     location,
-                    price: parseInt(x.querySelector(".listing-search-item__price").innerText.match('€(.*?) per month')[1].replace(",", "")),
+                    price
                 }
             })
     
