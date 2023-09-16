@@ -4,14 +4,14 @@ import { parse } from 'node-html-parser';
 import fs from "fs";
 import TelegramBot from "node-telegram-bot-api/lib/telegram";
 
-const token = "5577024603:AAGyaYt0WYvoUCP2qg90w9Zx273Ep-z050M";
+const token = "6384771787:AAEFgy6SS3l9IB_9MIj6qSqnKpUAaoDUlHo";
 const bot = new TelegramBot(token, { polling: true });
 
 const instance = axios.create({
     baseURL: 'https://www.pararius.com/',
     httpsAgent: new https.Agent({
         rejectUnauthorized: false
-      })
+    })
 });
 
 const resultFilePath = `${process.env.PWD}/results/pararius.json`;
@@ -34,17 +34,17 @@ export default {
                     price
                 }
             })
-    
+
             const oldListings = JSON.parse(fs.readFileSync(resultFilePath));
-    
+
             const news = [];
             currentListings.forEach(x => {
-                if (oldListings.some(y => y.title == x.title) || x.price > 1600) {
+                if (oldListings.some(y => y.title == x.title) || x.price > 1700) {
                     return;
                 }
                 news.push(x);
             });
-    
+
             console.log(new Date().toLocaleString() + " running for pararius...")
             if (news.length) {
                 console.log("you should check the web site if you dont get message");
@@ -53,8 +53,8 @@ export default {
             } else {
                 console.log("no new listing.");
             }
-    
-            fs.writeFileSync(resultFilePath, JSON.stringify(currentListings));   
+
+            fs.writeFileSync(resultFilePath, JSON.stringify(currentListings));
         } catch (error) {
             console.error(error)
         }
