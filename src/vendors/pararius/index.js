@@ -1,4 +1,5 @@
 import axios from "axios";
+import https from 'https';
 import { parse } from 'node-html-parser';
 import fs from "fs";
 import TelegramBot from "node-telegram-bot-api/lib/telegram";
@@ -8,8 +9,9 @@ const bot = new TelegramBot(token, { polling: true });
 
 const instance = axios.create({
     baseURL: 'https://www.pararius.com/',
-    timeout: 10000,
-    headers: { 'x-requested-with': 'XMLHttpRequest' }
+    httpsAgent: new https.Agent({
+        rejectUnauthorized: false
+      })
 });
 
 const resultFilePath = `${process.env.PWD}/results/pararius.json`;
@@ -17,20 +19,18 @@ const resultFilePath = `${process.env.PWD}/results/pararius.json`;
 export default {
     async checkNewAdvertisements(cityName, chatId) {
         try {
-            const response = await instance.post(`apartments/${cityName}`);
-            const html = response.data.components.results;
+            const response = await instance.get(`apartments/${cityName}`);
+            const html = response.data;
             const root = parse(html);
             const listingsAsHtml = root.querySelectorAll(".search-list__item--listing");
             const currentListings = listingsAsHtml.map(x => {
                 const titleDom = x.querySelector(".listing-search-item__title");
                 const title = titleDom.childNodes[1].text.trim();
                 const url = "https://www.pararius.com" + titleDom.childNodes[1].attributes["href"];
-                const location = x.querySelector(".listing-search-item__sub-title").childNodes[0].text.trim();
                 const price = parseInt(x.querySelector(".listing-search-item__price").innerText.match('€(.*?) per month')[1].replace(",", ""));
                 return {
                     title,
                     url,
-                    location,
                     price
                 }
             })
@@ -64,7 +64,7 @@ export default {
 function createMessage(listings) {
     var message = "";
     listings.forEach(x => {
-        message += `Title: ${x.title}, price: ${x.price}, location: ${x.location}, link: ${x.url}\r\n`;
+        message += `Title: ${x.title}, price: ${x.price}, link: ${x.url}\r\n`;
     });
     return message;
 }
